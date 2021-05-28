@@ -13,7 +13,47 @@ CHUNK_SIZE = 1024
 CONNECT_TIMEOUT = 5
 RETRY_COUNT = 5
 CLIP_PATTERNS = [r"^https:\/\/(clips|www).twitch.tv\/([0-z\-]+)$"]
-
+"""Request form and usage:
+query { 
+  game(name: "Apex Legends") {
+    name
+    followersCount
+    viewersCount
+    clips(criteria: { period: LAST_MONTH }) {
+      edges {
+        node {
+          id
+          title
+          viewCount
+          createdAt
+          durationSeconds
+          curator {
+            login
+          }
+          broadcaster {
+            login
+          }
+        }
+      }
+    }
+    videos(sort: VIEWS) {
+      edges {
+        node {
+          id
+          creator {
+            login
+          }
+          title
+          viewCount
+          createdAt
+          lengthSeconds
+          broadcastType
+        }
+      }
+    }
+  }
+}
+"""
 
 def download(video, name="", **kwargs):
     for pattern in CLIP_PATTERNS:
@@ -65,6 +105,9 @@ def get_clip(slug):
     {{
         clip(slug: "{}") {{
             title
+            game {{
+                name
+            }}
             broadcaster {{
                 displayName
             }}
@@ -118,4 +161,4 @@ def slugify(value):
     return re_spaces.sub('-', value)
 
 
-download_file("https://production.assets.clips.twitchcdn.net/38871258416-offset-622.mp4", r"E:\Users\Bureau" )
+get_clip("BovineScrumptiousClipzOSfrog-UNRfvpldJ2xXtx3_")

@@ -115,6 +115,8 @@ class interface(QtWidgets.QMainWindow):
         self.fileMenu = self.menuBar().addMenu('Files')
         find_loges = self.fileMenu.addAction('Set Discord logs')
         self.downloadAll = self.fileMenu.addAction('Download All')
+        # self.saveCach = self.fileMenu.addAction("Save Clips")
+        # self.loadCach = self.fileMenu.addAction("Load Clips")
         self.openLogs = QtWidgets.QAction('Auto open logs',self.fileMenu, checkable=True)
         self.fileMenu.addAction(self.openLogs)
         
@@ -135,8 +137,8 @@ class interface(QtWidgets.QMainWindow):
         get_label = QtWidgets.QLabel('Clips Found :')
         self.get_list = QtWidgets.QTreeWidget()
         self.get_list.setSortingEnabled(True)
-        self.get_list.setHeaderLabels(['Streamer', 'Cliper', 'Date', 'Clip name', 'Link'])
-        self.get_list.setColumnHidden(4, True)
+        self.get_list.setHeaderLabels(['Streamer', 'Cliper', 'Date', 'Clip name', 'Game', 'Link'])
+        self.get_list.setColumnHidden(5, True)
         self.get_list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         
         #-------------------------------------#
@@ -148,8 +150,8 @@ class interface(QtWidgets.QMainWindow):
         to_download_label = QtWidgets.QLabel('Clips in download queue :')
         self.downlaod_list = QtWidgets.QTreeWidget()
         self.downlaod_list.setSortingEnabled(True)
-        self.downlaod_list.setHeaderLabels(['Streamer', 'Cliper', 'Date', 'Clip name', 'Link'])
-        self.downlaod_list.setColumnHidden(4, True)
+        self.downlaod_list.setHeaderLabels(['Streamer', 'Cliper', 'Date', 'Clip name', 'Game', 'Link'])
+        self.downlaod_list.setColumnHidden(5, True)
         self.downlaod_list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
         #-------------------------------------#
@@ -256,7 +258,6 @@ class interface(QtWidgets.QMainWindow):
                 self.worker.updateProgress.connect(self.setProgress)
                 self.worker.finished.connect(self.populate_get_clip)
                 self.worker.start()
-                print(GET_CLIP_Data)
                 self.fileMenu.setEnabled(False)
             else:
                 logging.warning("Discord logs are invalid !")
@@ -264,7 +265,6 @@ class interface(QtWidgets.QMainWindow):
     def populate_get_clip(self):
         global GET_CLIP_Data
         for key, value in GET_CLIP_Data.items():
-            print (value)
             broadcaster = value['broadcaster']['displayName']
             try:
                 cliper = value['curator']['displayName']
@@ -273,8 +273,9 @@ class interface(QtWidgets.QMainWindow):
                 logging.info("Cliper not found, replace by 'Banned_user'")
             date = value['createdAt'].replace('Z', '').replace('T', '_')
             clip_name = value['title']
+            game =  value["game"]["name"]
             link = value['videoQualities'][0]['sourceURL']
-            QtWidgets.QTreeWidgetItem(self.get_list, [broadcaster, cliper, date, clip_name, key])
+            QtWidgets.QTreeWidgetItem(self.get_list, [broadcaster, cliper, date, clip_name, game,  key])
         logging.info("Data Stored")
         self.progressBar.hide()
         self.fileMenu.setEnabled(True)
@@ -283,28 +284,34 @@ class interface(QtWidgets.QMainWindow):
     def to_download_queue(self):
         items = self.get_list.selectedItems()
         for x in items:
-            TO_DOWNLOAD_Data[x.text(4)] = GET_CLIP_Data[x.text(4)]
-            del GET_CLIP_Data[x.text(4)]
-            QtWidgets.QTreeWidgetItem(self.downlaod_list, [x.text(0), x.text(1), x.text(2), x.text(3), x.text(4)])
+            TO_DOWNLOAD_Data[x.text(5)] = GET_CLIP_Data[x.text(5)]
+            del GET_CLIP_Data[x.text(5)]
+            QtWidgets.QTreeWidgetItem(self.downlaod_list, [x.text(0), x.text(1), x.text(2), x.text(3), x.text(4), x.text(5)])
             self.get_list.takeTopLevelItem(self.get_list.indexOfTopLevelItem(x))
     
     # Set items to get widget
     def to_get_list(self):
         items = self.downlaod_list.selectedItems()
         for x in items:
-            GET_CLIP_Data[x.text(4)] = TO_DOWNLOAD_Data[x.text(4)]
-            del TO_DOWNLOAD_Data[x.text(4)]
-            QtWidgets.QTreeWidgetItem(self.get_list, [x.text(0), x.text(1), x.text(2), x.text(3), x.text(4)])
+            GET_CLIP_Data[x.text(5)] = TO_DOWNLOAD_Data[x.text(5)]
+            del TO_DOWNLOAD_Data[x.text(5)]
+            QtWidgets.QTreeWidgetItem(self.get_list, [x.text(0), x.text(1), x.text(2), x.text(3), x.text(4), x.text(5)])
             self.downlaod_list.takeTopLevelItem(self.downlaod_list.indexOfTopLevelItem(x))
     
     # open item in browser
     def get_in_browser(self):
         selected = self.get_list.selectedItems()
-        for x in selected:
-            link = x.text(4)
-            try:
-                webbrowser.open(link)
-            except: pass
+        if len(selected) > 5:
+            isConfirm = self.confirmDialog()
+        if len(selected) < 5 or isConfirm:
+            for x in selected:
+                link = x.text(5)
+                try:
+                    webbrowser.open(link)
+                except: pass
+
+    def save_clips(self):
+        print(self.get_list.findItems(""))
 
     def download_in_browser(self):
         selected = self.downlaod_list.selectedItems()
@@ -383,6 +390,19 @@ class interface(QtWidgets.QMainWindow):
         precent_data = str(round((float(progress)*100.0/float(len(clips))), 2))
         self.dwnloadBar.setFormat("Downlaod Clips : {}%".format(precent_data)) 
         self.dwnloadBar.setValue(progress)
+
+    def confirmDialog(self):
+        confirm = QtWidgets.QMessageBox(self)
+        confirm.setWindowTitle("Are you sure ?")
+        confirm.setText("You are atemp to open more than 5 tabs, Are you sur you want to do that ?")
+        confirm.addButton("Yes", QtWidgets.QMessageBox.AcceptRole)
+        confirm.addButton("No", QtWidgets.QMessageBox.RejectRole)
+        ret = confirm.exec_()
+        if ret == QtWidgets.QMessageBox.AcceptRole:
+            return True
+        elif ret == QtWidgets.QMessageBox.RejectRole:
+            return False
+
 
 application = QtWidgets.QApplication(sys.argv)
 window = interface()
