@@ -12,10 +12,7 @@ CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
 CHUNK_SIZE = 1024
 CONNECT_TIMEOUT = 5
 RETRY_COUNT = 5
-CLIP_PATTERNS = [
-    r"^(?P<slug>[A-Za-z]+)$",
-    r"^https://www.twitch.tv/\w+/clip/(?P<slug>[A-Za-z]+)(\?.+)?$",
-    r"^https://clips.twitch.tv/(?P<slug>[A-Za-z]+)(\?.+)?$"]
+CLIP_PATTERNS = [r"^https:\/\/(clips|www).twitch.tv\/([0-z\-]+)$"]
 
 
 def download(video, name="", **kwargs):
@@ -119,3 +116,6 @@ def slugify(value):
     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
     value = re_pattern.sub('', value).strip().lower()
     return re_spaces.sub('-', value)
+
+
+download_file("https://production.assets.clips.twitchcdn.net/38871258416-offset-622.mp4", r"E:\Users\Bureau" )

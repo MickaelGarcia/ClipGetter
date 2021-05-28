@@ -16,10 +16,8 @@ logging.basicConfig(filename='Logs\Logs_.log', filemode='w', encoding='utf-8', f
 Path = "\\".join(os.path.abspath(__file__).split("\\")[:-1]).replace("z", "Z")+"\\Logs\\Logs_.log"
 logging.info("Log Path : %s" %(Path))
 
-CLIP_PATTERNS = [
-    r'(?P<slug>[A-Za-z]+)([0-9 \-]+)',
-    r'^https://www.twitch.tv/\w+/clip/(?P<slug>[A-Za-z]+)([0-9 \-]+)',
-    r'^https://clips.twitch.tv/(?P<slug>[A-Za-z]+)([0-9 \-]+)']
+CLIP_PATTERNS = [r"^https:\/\/(clips|www).twitch.tv\/([0-z\-]+)$"]
+
 
 styleSheet = '''
 QMenuBar::item { background-color: #505050; color: #ffffff; }
@@ -58,7 +56,7 @@ class Worker(QtCore.QThread):
             for pattern in CLIP_PATTERNS:
                 match = re.match(pattern, x)
             if match:
-                clip_slug = match.group('slug')
+                clip_slug = x.split("/")[-1]
                 clip = get_clip(clip_slug)
                 if clip is not None:
                     GET_CLIP_Data[x] = clip
@@ -266,8 +264,13 @@ class interface(QtWidgets.QMainWindow):
     def populate_get_clip(self):
         global GET_CLIP_Data
         for key, value in GET_CLIP_Data.items():
+            print (value)
             broadcaster = value['broadcaster']['displayName']
-            cliper = value['curator']['displayName']
+            try:
+                cliper = value['curator']['displayName']
+            except:
+                cliper = "Banned_user"
+                logging.info("Cliper not found, replace by 'Banned_user'")
             date = value['createdAt'].replace('Z', '').replace('T', '_')
             clip_name = value['title']
             link = value['videoQualities'][0]['sourceURL']

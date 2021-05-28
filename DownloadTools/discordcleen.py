@@ -1,10 +1,7 @@
 import os
 import re
 
-CLIP_PATTERNS = [
-    r"^(?P<slug>[A-Za-z]+)$",
-    r"^https://www.twitch.tv/\w+/clip/",
-    r"^https://clips.twitch.tv/"]
+CLIP_PATTERNS = [r"^https:\/\/(clips|www).twitch.tv\/([0-z\-]+)$"]
 
 
 def get_logs(path, date = ""):
@@ -22,4 +19,5 @@ def get_logs(path, date = ""):
                     clip_list.append(line.replace("\n",""))
 
     clip_list = list(set(clip_list))
+    
     return  clip_list
