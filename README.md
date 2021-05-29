@@ -29,5 +29,5 @@ After used  'Set Discord Logs', if you use it again, you will lost all clips in 
 
 * Feature : Load and save Clip Found tab to increase the efficiency on massive amount of items and to have only unused clips
 * Feature : Drag and drop discord logs option
-* Feature : Reaming options to gate more or less info in the clips name files
+* Feature : Reaming options to get more or less info in the clips name files
 * Feature : Quality download options
