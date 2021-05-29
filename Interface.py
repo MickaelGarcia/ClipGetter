@@ -273,7 +273,10 @@ class interface(QtWidgets.QMainWindow):
                 logging.info("Cliper not found, replace by 'Banned_user'")
             date = value['createdAt'].replace('Z', '').replace('T', '_')
             clip_name = value['title']
-            game =  value["game"]["name"]
+            try:
+                game =  value["game"]["name"]
+            except:
+                game = 'Game not foud'
             link = value['videoQualities'][0]['sourceURL']
             QtWidgets.QTreeWidgetItem(self.get_list, [broadcaster, cliper, date, clip_name, game,  key])
         logging.info("Data Stored")
@@ -409,4 +412,3 @@ window = interface()
 window.show()
 application.aboutToQuit.connect(partial(closed_fonction, window.openLogs))
 sys.exit(application.exec_())
-
