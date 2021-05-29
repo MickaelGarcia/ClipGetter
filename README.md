@@ -3,12 +3,10 @@ Get twitch clip list and download tool from discord logs
 
 This application require Python 3, requests and qtpy with your favorite Qt library.
 
-This tool have to be use with discord .txt logs, i recomand you to use this tool : 
-
-https://github.com/Tyrrrz/DiscordChatExporter
+This tool have to be use with discord .txt logs, i recomand you to use [Discord Chat Exporter](https://github.com/Tyrrrz/DiscordChatExporter)
 
 
-Usage :
+## Usage :
 
 When You a .txt  file of discord logs, go to Files => Set Discord logs and locate your .txt file.
 In the end of process, you will have a list of clips, with all usfull data. 
@@ -20,13 +18,16 @@ This will create a directory for each streamer in the list, and download all cli
 You can also use Files => Download All, pick up a discord log, and a download location. 
 That will download all clips found in the .txt file with the same rules than previous
 
-Beware : 
+### Beware : 
 
 After used  'Set Discord Logs', if you use it again, you will lost all clips in 'Clips Found' tab !
 
 
-To do:
+## To do:
 
-BugFix : Posiblity to ad same clip in download queue with multiple log files
+* BugFix : Possibility to add the same clip multiple time in download queue with multiple log files
 
-Feature : Load and save Clip Found tab to increase the efficiency on massive amount of items and to have only unused clips
+* Feature : Load and save Clip Found tab to increase the efficiency on massive amount of items and to have only unused clips
+* Feature : Drag and drop discord logs option
+* Feature : Reaming options to gate more or less info in the clips name files
+* Feature : Quality download options
