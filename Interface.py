@@ -63,6 +63,7 @@ class Worker(QtCore.QThread):
                 else:
                     logging.info("Clip {} may not exist".format(x))
 
+
 class DownloadWorker(QtCore.QThread):
     updateProgress = QtCore.Signal(int)
 
@@ -92,6 +93,7 @@ class DownloadWorker(QtCore.QThread):
                 logging.info("Download Complete.")
                 i += 1
 
+
 class interface(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(interface, self).__init__(*args, **kwargs)
@@ -115,11 +117,10 @@ class interface(QtWidgets.QMainWindow):
         self.fileMenu = self.menuBar().addMenu('Files')
         find_loges = self.fileMenu.addAction('Set Discord logs')
         self.downloadAll = self.fileMenu.addAction('Download All')
-        # self.saveCach = self.fileMenu.addAction("Save Clips")
-        # self.loadCach = self.fileMenu.addAction("Load Clips")
+        self.saveClips = self.fileMenu.addAction("Save Clips")
         self.openLogs = QtWidgets.QAction('Auto open logs',self.fileMenu, checkable=True)
         self.fileMenu.addAction(self.openLogs)
-        
+
         #-------------------------------------#
         #               Spliter               #
         #-------------------------------------#
@@ -140,7 +141,7 @@ class interface(QtWidgets.QMainWindow):
         self.get_list.setHeaderLabels(['Streamer', 'Cliper', 'Date', 'Clip name', 'Game', 'Link'])
         self.get_list.setColumnHidden(5, True)
         self.get_list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        
+
         #-------------------------------------#
         #        Download cli Widgets         #
         #-------------------------------------# 
@@ -169,6 +170,7 @@ class interface(QtWidgets.QMainWindow):
         #-------------------------------------#
         find_loges.triggered.connect(self.add_clips)
         self.downloadAll.triggered.connect(self.download_all)
+        self.saveClips.triggered.connect(self.save_clips)
 
         #-------------------------------------#
         #             ProgressBar             #
@@ -178,7 +180,7 @@ class interface(QtWidgets.QMainWindow):
         self.progressBar.setAlignment(QtCore.Qt.AlignCenter)
         self.layout.addWidget(self.progressBar)
         self.progressBar.hide()
-        
+
         self.dwnloadBar = QtWidgets.QProgressBar()
         self.dwnloadBar.setStyleSheet('QProgressBar {color: black}')
         self.dwnloadBar.setAlignment(QtCore.Qt.AlignCenter)
@@ -190,7 +192,7 @@ class interface(QtWidgets.QMainWindow):
         self.execute_download = QtWidgets.QPushButton("Execute")
         self.execute_download.clicked.connect(self.download_selected_list)
         self.layout.addWidget(self.execute_download)
-        
+
         #-------------------------------------#
         #           Right click Menu          #
         #-------------------------------------#
@@ -230,7 +232,7 @@ class interface(QtWidgets.QMainWindow):
     # Right clic Menu pose click on download widget
     def on_download_menu(self, point):
         self.out_menu.exec_(self.downlaod_list.mapToGlobal(point))
-    
+
     # Populate Get widget with discord Logs
     def add_clips(self):
         
@@ -261,7 +263,7 @@ class interface(QtWidgets.QMainWindow):
                 self.fileMenu.setEnabled(False)
             else:
                 logging.warning("Discord logs are invalid !")
-                
+
     def populate_get_clip(self):
         global GET_CLIP_Data
         for key, value in GET_CLIP_Data.items():
@@ -291,7 +293,7 @@ class interface(QtWidgets.QMainWindow):
             del GET_CLIP_Data[x.text(5)]
             QtWidgets.QTreeWidgetItem(self.downlaod_list, [x.text(0), x.text(1), x.text(2), x.text(3), x.text(4), x.text(5)])
             self.get_list.takeTopLevelItem(self.get_list.indexOfTopLevelItem(x))
-    
+
     # Set items to get widget
     def to_get_list(self):
         items = self.downlaod_list.selectedItems()
@@ -300,7 +302,7 @@ class interface(QtWidgets.QMainWindow):
             del TO_DOWNLOAD_Data[x.text(5)]
             QtWidgets.QTreeWidgetItem(self.get_list, [x.text(0), x.text(1), x.text(2), x.text(3), x.text(4), x.text(5)])
             self.downlaod_list.takeTopLevelItem(self.downlaod_list.indexOfTopLevelItem(x))
-    
+
     # open item in browser
     def get_in_browser(self):
         selected = self.get_list.selectedItems()
@@ -314,7 +316,29 @@ class interface(QtWidgets.QMainWindow):
                 except: pass
 
     def save_clips(self):
-        print(self.get_list.findItems(""))
+        old_selection = self.get_list.selectedItems()
+        root_item = self.get_list.invisibleRootItem()
+        clips_link = "\tSave Clips\n"
+        self.setSelectItems(root_item, True)
+        clips_items = self.get_list.selectedItems()
+        for item in clips_items:
+            clips_link += (item.text(5) + "\n")
+
+        save_dir = QtWidgets.QFileDialog()
+        save_file_path = QtWidgets.QFileDialog.getSaveFileName(save_dir, "Discord text logs", "", "Text files (*.txt)")[0]
+
+        with open(save_file_path, "w") as save_file:
+            save_file.write(clips_link)
+
+        self.setSelectItems(root_item, False)
+        for item in old_selection:
+            item.setSelected(True)
+
+    def setSelectItems(self, item, selStat):
+        item.setSelected(selStat)
+        for i in range(item.childCount()):
+            child = item.child(i)
+            self.setSelectItems(child, selStat)
 
     def download_in_browser(self):
         selected = self.downlaod_list.selectedItems()
@@ -323,7 +347,7 @@ class interface(QtWidgets.QMainWindow):
             try:
                 webbrowser.open(link)
             except: pass
-    
+
     def setProgress (self, progress):
         precent_data = str(round((float(progress)*100.0/float(len(self.clips_list))), 2))
         self.progressBar.setFormat('Get Clips Data : {}%'.format(precent_data)) 
@@ -346,7 +370,7 @@ class interface(QtWidgets.QMainWindow):
             self.get_list.setEnabled(False)
             self.downlaod_list.setEnabled(False)
             self.downlaodWorker.finished.connect(self.downloadFinished)
-        
+
     def downloadProgress(self, progress):
         global TO_DOWNLOAD_Data
         precent_data = str(round((float(progress)*100.0/float(len(TO_DOWNLOAD_Data))), 2))
@@ -387,7 +411,7 @@ class interface(QtWidgets.QMainWindow):
                 self.downlaod_list.setEnabled(False)
                 self.execute_download.setEnabled(False)
                 self.downlaodWorker.finished.connect(self.downloadFinished)
-                
+
     def downloadAllProgress(self, clips, progress):
         global TO_DOWNLOAD_Data
         precent_data = str(round((float(progress)*100.0/float(len(clips))), 2))

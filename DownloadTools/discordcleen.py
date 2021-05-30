@@ -19,5 +19,4 @@ def get_logs(path, date = ""):
                     clip_list.append(line.replace("\n",""))
 
     clip_list = list(set(clip_list))
-    
     return  clip_list
